@@ -1,0 +1,98 @@
+.formations-container {
+  max-width: 900px;
+}
+
+.tree-view-card {
+  background: var(--surface-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+}
+
+.tree-node-content {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.tree-node-content:hover {
+  background-color: var(--background-light);
+  border-color: var(--border-color);
+}
+
+.tree-node-content:active {
+  transform: scale(0.99);
+}
+
+.tree-toggle {
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.tree-icon {
+  margin-right: 0.75rem;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+}
+
+.tree-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.tree-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.tree-children {
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--border-color);
+  margin-left: 1.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Colors by type */
+.tree-node-content.matiere .tree-icon { color: var(--secondary-color); }
+.tree-node-content.matiere .tree-badge { background: rgba(16, 185, 129, 0.1); color: var(--secondary-color); }
+.tree-node-content.matiere .tree-label { font-weight: 500; }
+
+.tree-node-content.ue .tree-icon { color: #f59e0b; }
+.tree-node-content.ue .tree-badge { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+
+.tree-node-content.niveau .tree-badge { background: #f3f4f6; color: var(--text-secondary); }
+.tree-node-content.semestre .tree-badge { background: #f3f4f6; color: var(--text-secondary); }
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+.btn-primary:hover { 
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-md);
+}
