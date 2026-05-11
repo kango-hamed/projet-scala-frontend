@@ -1,0 +1,49 @@
+.flup-input-search:focus {
+  border-color: var(--flup-accent) !important;
+}
+
+.flup-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.flup-table th {
+  background-color: var(--flup-sidebar-narrow);
+  border-bottom: 1px solid var(--flup-border);
+  padding: 12px 24px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--flup-text-muted);
+}
+
+.flup-table th.sortable {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.flup-table th.sortable:hover {
+  color: var(--flup-text-primary);
+}
+
+.flup-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--flup-border);
+  font-size: 13.5px;
+  color: var(--flup-text-primary);
+  font-weight: 500;
+}
+
+.flup-table tr:last-child td {
+  border-bottom: none;
+}
+
+.flup-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.flup-table tbody tr:hover {
+  background-color: var(--flup-bg);
+}

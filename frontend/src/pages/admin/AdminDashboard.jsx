@@ -21,50 +21,56 @@ const AdminDashboard = () => {
     { name: 'M2', value: 100 },
   ];
   
-  const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+  const COLORS = ['var(--flup-data-1)', 'var(--flup-data-5)', 'var(--flup-data-2)', 'var(--flup-data-6)', 'var(--flup-data-3)'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* KPIS */}
       <section>
-        <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Aperçu Global</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-          <KPICard title="Total Étudiants" value="1,200" icon={<Users size={24} />} trend={5} color="#4f46e5" />
-          <KPICard title="Total Enseignants" value="150" icon={<GraduationCap size={24} />} trend={2} color="#10b981" />
-          <KPICard title="Taux d'absentéisme" value="8%" icon={<AlertTriangle size={24} />} trend={-1.5} color="#f59e0b" />
-          <KPICard title="Paiements en attente" value="45" icon={<CreditCard size={24} />} trend={12} color="#ef4444" />
+        <h2 className="flup-h2" style={{ marginBottom: '16px' }}>Aperçu Global</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+          <KPICard title="Total Étudiants" value="1,200" icon={<Users size={24} />} color="var(--flup-data-1)" />
+          <KPICard title="Total Enseignants" value="150" icon={<GraduationCap size={24} />} color="var(--flup-data-5)" />
+          <KPICard title="Taux d'absentéisme" value="8%" icon={<AlertTriangle size={24} />} color="var(--flup-data-2)" />
+          <KPICard title="Paiements en attente" value="45" icon={<CreditCard size={24} />} color="var(--flup-data-7)" />
         </div>
       </section>
 
       {/* CHARTS */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-        <div style={{ background: 'var(--surface-light)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Répartition par Niveau</h3>
-          <div style={{ height: '300px' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+        <div className="flup-card">
+          <h3 className="flup-h2" style={{ marginBottom: '24px' }}>Répartition par Niveau</h3>
+          <div style={{ height: '260px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={studentDistData} innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                <Pie data={studentDistData} innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" stroke="none">
                   {studentDistData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--flup-border)', boxShadow: 'var(--flup-shadow)' }}
+                  itemStyle={{ color: 'var(--flup-text-primary)' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div style={{ background: 'var(--surface-light)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Assiduité par Filière (%)</h3>
-          <div style={{ height: '300px' }}>
+        <div className="flup-card">
+          <h3 className="flup-h2" style={{ marginBottom: '24px' }}>Assiduité par Filière (%)</h3>
+          <div style={{ height: '260px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={attendanceData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} />
-                <Bar dataKey="present" stackId="a" fill="var(--secondary-color)" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="absent" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <BarChart data={attendanceData} barSize={32}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--flup-border)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--flup-text-muted)' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--flup-text-muted)' }} dx={-10} />
+                <Tooltip 
+                  cursor={{fill: 'rgba(0,0,0,0.02)'}} 
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--flup-border)', boxShadow: 'var(--flup-shadow)' }}
+                />
+                <Bar dataKey="present" stackId="a" fill="var(--flup-data-4)" radius={[0, 0, 4, 4]} />
+                <Bar dataKey="absent" stackId="a" fill="var(--flup-data-7)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -72,36 +78,38 @@ const AdminDashboard = () => {
       </section>
 
       {/* RECENT ACTIVITY TABLE */}
-      <section style={{ background: 'var(--surface-light)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
-        <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Dernières Inscriptions</h3>
+      <section className="flup-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--flup-border)' }}>
+          <h3 className="flup-h2" style={{ margin: 0 }}>Dernières Inscriptions</h3>
+        </div>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="flup-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                <th style={{ padding: '1rem', fontWeight: '500' }}>Matricule</th>
-                <th style={{ padding: '1rem', fontWeight: '500' }}>Nom</th>
-                <th style={{ padding: '1rem', fontWeight: '500' }}>Filière</th>
-                <th style={{ padding: '1rem', fontWeight: '500' }}>Statut</th>
+              <tr>
+                <th>Matricule</th>
+                <th>Nom</th>
+                <th>Filière</th>
+                <th>Statut</th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>ETU-2026-001</td>
-                <td style={{ padding: '1rem' }}>Alice Dupont</td>
-                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>Informatique L1</td>
-                <td style={{ padding: '1rem' }}><StatusBadge status="Validée" /></td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <td style={{ padding: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>ETU-2026-002</td>
-                <td style={{ padding: '1rem' }}>Marc Tremblay</td>
-                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>Mathématiques L2</td>
-                <td style={{ padding: '1rem' }}><StatusBadge status="En attente" /></td>
+              <tr>
+                <td style={{ fontWeight: 700 }}>ETU-2026-001</td>
+                <td>Alice Dupont</td>
+                <td style={{ color: 'var(--flup-text-secondary)' }}>Informatique L1</td>
+                <td><StatusBadge status="Validée" /></td>
               </tr>
               <tr>
-                <td style={{ padding: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>ETU-2026-003</td>
-                <td style={{ padding: '1rem' }}>Sophie Martin</td>
-                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>Physique M1</td>
-                <td style={{ padding: '1rem' }}><StatusBadge status="Annulée" /></td>
+                <td style={{ fontWeight: 700 }}>ETU-2026-002</td>
+                <td>Marc Tremblay</td>
+                <td style={{ color: 'var(--flup-text-secondary)' }}>Mathématiques L2</td>
+                <td><StatusBadge status="En attente" /></td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700 }}>ETU-2026-003</td>
+                <td>Sophie Martin</td>
+                <td style={{ color: 'var(--flup-text-secondary)' }}>Physique M1</td>
+                <td><StatusBadge status="Annulée" /></td>
               </tr>
             </tbody>
           </table>

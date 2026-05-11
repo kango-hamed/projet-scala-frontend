@@ -12,6 +12,7 @@ import AdminDashboard from '../pages/admin/AdminDashboard';
 import EtudiantsList from '../pages/admin/EtudiantsList';
 import FormationsList from '../pages/admin/FormationsList';
 import EmploiDuTemps from '../pages/admin/EmploiDuTemps';
+import PaiementsList from '../pages/admin/PaiementsList'; // <-- Nouveau composant
 import EnseignantDashboard from '../pages/enseignant/EnseignantDashboard';
 import SaisieNotes from '../pages/enseignant/SaisieNotes';
 import EtudiantDashboard from '../pages/etudiant/EtudiantDashboard';
@@ -31,6 +32,7 @@ const AppRouter = () => {
             <Route path="etudiants" element={<EtudiantsList />} />
             <Route path="formations" element={<FormationsList />} />
             <Route path="emplois" element={<EmploiDuTemps />} />
+            <Route path="paiements" element={<PaiementsList />} /> {/* <-- Route ajoutée */}
           </Route>
         </Route>
 
@@ -46,7 +48,6 @@ const AppRouter = () => {
         <Route element={<ProtectedRoute allowedRoles={['etudiant']} />}>
           <Route path="/etudiant" element={<MainLayout />}>
             <Route index element={<EtudiantDashboard />} />
-            {/* Si un étudiant va sur son propre emploi du temps : */}
             <Route path="emploi" element={<EmploiDuTemps />} />
           </Route>
         </Route>

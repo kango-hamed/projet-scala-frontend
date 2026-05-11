@@ -3,7 +3,7 @@ import { BookOpen, Calendar, AlertTriangle, Award } from 'lucide-react';
 import KPICard from '../../components/common/KPICard';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
-import WeekCalendar from '../../components/common/WeekCalendar'; // on réutilise le calendrier !
+import WeekCalendar from '../../components/common/WeekCalendar';
 
 const EtudiantDashboard = () => {
   const recentGrades = [
@@ -18,7 +18,7 @@ const EtudiantDashboard = () => {
     { 
       key: 'note', 
       label: 'Note / 20',
-      render: (val) => <span style={{ fontWeight: 'bold', color: val >= 10 ? '#059669' : '#dc2626' }}>{val}</span>
+      render: (val) => <span className="flup-mono" style={{ fontWeight: '700', fontSize: '14px', color: val >= 10 ? 'var(--flup-success)' : 'var(--flup-danger)' }}>{val}</span>
     },
     { 
       key: 'statut', 
@@ -34,39 +34,39 @@ const EtudiantDashboard = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* SECTION 1: KPIS */}
       <section>
-        <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Mon Semestre</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-          <KPICard title="Moyenne Générale" value="13.16" icon={<Award size={24} />} color="#10b981" />
-          <KPICard title="Rang Promotion" value="15 / 120" icon={<BookOpen size={24} />} color="#4f46e5" />
-          <KPICard title="Heures d'absence" value="4h" icon={<AlertTriangle size={24} />} color="#f59e0b" />
-          <KPICard title="Prochain Cours" value="Maths (10h)" icon={<Calendar size={24} />} color="#8b5cf6" />
+        <h2 className="flup-h2" style={{ marginBottom: '16px' }}>Mon Semestre</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+          <KPICard title="Moyenne Générale" value="13.16" icon={<Award size={24} />} color="var(--flup-data-5)" />
+          <KPICard title="Rang Promotion" value="15 / 120" icon={<BookOpen size={24} />} color="var(--flup-data-1)" />
+          <KPICard title="Heures d'absence" value="4h" icon={<AlertTriangle size={24} />} color="var(--flup-data-2)" />
+          <KPICard title="Prochain Cours" value="Maths (10h)" icon={<Calendar size={24} />} color="var(--flup-data-3)" />
         </div>
       </section>
 
       {/* SECTION 2: GRADES & PAYMENTS */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ color: 'var(--text-secondary)' }}>Mes Dernières Notes</h3>
-          <DataTable columns={columns} data={recentGrades} searchable={false} />
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h3 className="flup-h2">Mes Dernières Notes</h3>
+          <DataTable columns={columns} data={recentGrades} searchable={false} exportable={false} />
         </div>
         
-        <div style={{ background: 'var(--surface-light)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Prochains Paiements</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: '600' }}>Frais de scolarité - Tranche 2</span>
-                <span style={{ color: '#ef4444', fontWeight: 'bold' }}>150 000 FCFA</span>
+        <div className="flup-card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 className="flup-h2" style={{ marginBottom: '24px' }}>Prochains Paiements</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ padding: '16px', border: '1px solid var(--flup-border)', borderRadius: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: '600', fontSize: '13.5px' }}>Frais de scolarité - Tranche 2</span>
+                <span className="flup-mono" style={{ color: 'var(--flup-danger)', fontWeight: '700', fontSize: '14px' }}>150 000 FCFA</span>
               </div>
-              <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Échéance : 15 Nov 2026</div>
-              <div style={{ width: '100%', height: '8px', background: '#f3f4f6', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ width: '30%', height: '100%', background: 'var(--secondary-color)' }}></div>
+              <div className="flup-label" style={{ marginBottom: '16px' }}>Échéance : 15 Nov 2026</div>
+              <div style={{ width: '100%', height: '6px', background: 'var(--flup-bg)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ width: '30%', height: '100%', background: 'var(--flup-accent)' }}></div>
               </div>
-              <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', textAlign: 'right', color: 'var(--text-secondary)' }}>30% payé</div>
+              <div className="flup-label" style={{ marginTop: '8px', textAlign: 'right' }}>30% payé</div>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@ const EtudiantDashboard = () => {
 
       {/* SECTION 3: CALENDAR */}
       <section>
-        <h3 style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Mon Emploi du temps</h3>
+        <h3 className="flup-h2" style={{ marginBottom: '16px' }}>Mon Emploi du temps</h3>
         <WeekCalendar events={myEvents} />
       </section>
 

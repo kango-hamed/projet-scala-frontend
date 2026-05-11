@@ -16,7 +16,6 @@ const SaisieNotes = () => {
   const [selectedMatiere, setSelectedMatiere] = useState('Algorithmique L1');
   const [saved, setSaved] = useState(false);
 
-  // Formule exigée : 40% CC + 60% Examen
   const calculateMoyenne = (cc, examen) => {
     if (cc === '' || examen === '') return null;
     const numCC = parseFloat(cc);
@@ -29,19 +28,19 @@ const SaisieNotes = () => {
     if (moyenne === null) return null;
     const num = parseFloat(moyenne);
     if (num >= 10) return 'Admis';
-    if (num >= 8) return 'Redoublement'; // ou Rattrapage
+    if (num >= 8) return 'Redoublement';
     return 'Ajourné';
   };
 
   const handleGradeChange = (id, field, value) => {
-    setSaved(false); // Le tableau n'est plus sauvegardé
+    setSaved(false);
 
     let parsedValue = value;
     if (value !== '') {
       parsedValue = parseFloat(value);
       if (isNaN(parsedValue)) parsedValue = '';
-      if (parsedValue > 20) parsedValue = 20; // Blocage à 20 max
-      if (parsedValue < 0) parsedValue = 0;   // Blocage à 0 min
+      if (parsedValue > 20) parsedValue = 20;
+      if (parsedValue < 0) parsedValue = 0;
     }
 
     setGrades(grades.map(student => {
@@ -53,22 +52,22 @@ const SaisieNotes = () => {
   };
 
   const handleSave = () => {
-    // Ici on ferait un appel API réel (axios.post...)
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000); // Disparaît après 3s
+    setTimeout(() => setSaved(false), 3000);
   };
 
   const hasMissingNotes = grades.some(g => g.cc === '' || g.examen === '');
 
   return (
-    <div className="saisie-notes-container">
-      <div className="saisie-header">
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Grille de saisie</h2>
+          <h1 className="flup-h1" style={{ marginBottom: '16px' }}>Grille de saisie</h1>
           <select 
             value={selectedMatiere} 
             onChange={(e) => setSelectedMatiere(e.target.value)}
-            className="matiere-selector"
+            className="flup-input-select"
+            style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--flup-border)', outline: 'none', background: 'var(--flup-surface)', minWidth: '300px' }}
           >
             <option value="Algorithmique L1">Algorithmique - L1 Informatique</option>
             <option value="Base de données L2">Bases de données - L2 Informatique</option>
@@ -76,29 +75,29 @@ const SaisieNotes = () => {
           </select>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {hasMissingNotes && (
-            <div className="alert-missing">
-              <AlertCircle size={18} />
-              <span>Notes manquantes détectées</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--flup-danger)', background: 'var(--flup-danger-bg)', padding: '8px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 600 }}>
+              <AlertCircle size={16} />
+              <span>Notes manquantes</span>
             </div>
           )}
-          <button className={`btn-save ${saved ? 'saved' : ''}`} onClick={handleSave}>
-            <Save size={20} />
-            {saved ? 'Enregistré avec succès !' : 'Enregistrer la grille'}
+          <button className={`flup-btn ${saved ? '' : 'flup-btn--primary'}`} onClick={handleSave} style={saved ? { pointerEvents: 'none', background: 'var(--flup-success-bg)', color: 'var(--flup-success)', borderColor: 'transparent' } : {}}>
+            <Save size={16} />
+            {saved ? 'Enregistré' : 'Enregistrer'}
           </button>
         </div>
       </div>
 
-      <div className="spreadsheet-container glass-effect">
-        <table className="spreadsheet-table">
+      <div className="flup-card" style={{ padding: 0, overflowX: 'auto' }}>
+        <table className="flup-table spreadsheet-table">
           <thead>
             <tr>
               <th>Matricule</th>
               <th>Nom & Prénom</th>
               <th className="text-center">Contrôle Continu (40%)</th>
               <th className="text-center">Examen Final (60%)</th>
-              <th className="text-center">Moyenne Générale / 20</th>
+              <th className="text-center">Moyenne / 20</th>
               <th>Décision</th>
             </tr>
           </thead>
@@ -109,37 +108,31 @@ const SaisieNotes = () => {
               
               return (
                 <tr key={student.id}>
-                  <td className="readonly-cell text-secondary font-medium">{student.matricule}</td>
-                  <td className="readonly-cell font-medium">{student.nom}</td>
+                  <td className="readonly-cell" style={{ color: 'var(--flup-text-secondary)', fontWeight: 600 }}>{student.matricule}</td>
+                  <td className="readonly-cell" style={{ fontWeight: 500 }}>{student.nom}</td>
                   <td className="input-cell">
                     <input 
-                      type="number" 
-                      min="0" 
-                      max="20" 
-                      step="0.25"
+                      type="number" min="0" max="20" step="0.25"
                       value={student.cc}
                       onChange={(e) => handleGradeChange(student.id, 'cc', e.target.value)}
-                      className={student.cc === '' ? 'missing-note' : ''}
+                      className={student.cc === '' ? 'missing-note flup-mono' : 'flup-mono'}
                       placeholder="--"
                     />
                   </td>
                   <td className="input-cell">
                     <input 
-                      type="number" 
-                      min="0" 
-                      max="20" 
-                      step="0.25"
+                      type="number" min="0" max="20" step="0.25"
                       value={student.examen}
                       onChange={(e) => handleGradeChange(student.id, 'examen', e.target.value)}
-                      className={student.examen === '' ? 'missing-note' : ''}
+                      className={student.examen === '' ? 'missing-note flup-mono' : 'flup-mono'}
                       placeholder="--"
                     />
                   </td>
-                  <td className={`readonly-cell text-center font-bold ${moyenne && moyenne < 10 ? 'text-danger' : 'text-success'}`}>
+                  <td className="readonly-cell text-center flup-mono" style={{ fontWeight: 700, color: moyenne && moyenne < 10 ? 'var(--flup-danger)' : 'var(--flup-success)' }}>
                     {moyenne !== null ? moyenne : '--'}
                   </td>
                   <td className="readonly-cell">
-                    {decision ? <StatusBadge status={decision} /> : <span className="text-secondary">En attente</span>}
+                    {decision ? <StatusBadge status={decision} /> : <span style={{ color: 'var(--flup-text-muted)', fontSize: '13px' }}>En attente</span>}
                   </td>
                 </tr>
               );

@@ -12,7 +12,6 @@ const EtudiantForm = ({ initialData, onSubmit, onCancel }) => {
     email: '',
   });
 
-  // Si on édite, on pré-remplit les champs
   useEffect(() => {
     if (initialData) {
       setFormData({ ...formData, ...initialData });
@@ -85,8 +84,8 @@ const EtudiantForm = ({ initialData, onSubmit, onCancel }) => {
       </div>
 
       <div className="form-actions">
-        <button type="button" className="btn-cancel" onClick={onCancel}>Annuler</button>
-        <button type="submit" className="btn-submit">{initialData ? 'Mettre à jour' : 'Ajouter l\'étudiant'}</button>
+        <button type="button" className="flup-btn" onClick={onCancel}>Annuler</button>
+        <button type="submit" className="flup-btn flup-btn--primary">{initialData ? 'Mettre à jour' : 'Ajouter l\'étudiant'}</button>
       </div>
     </form>
   );

@@ -1,20 +1,18 @@
 import React from 'react';
-import './Common.css';
 
-const KPICard = ({ title, value, icon, trend, color = 'var(--primary-color)' }) => {
+const KPICard = ({ title, value, icon, color }) => {
   return (
-    <div className="kpi-card">
-      <div className="kpi-icon" style={{ backgroundColor: `${color}15`, color: color }}>
-        {icon}
+    <div className="flup-card flup-card--kpi" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--flup-text-muted)' }}>
+        <div style={{ color: color || 'var(--flup-text-muted)', display: 'flex', alignItems: 'center' }}>
+          {icon}
+        </div>
+        <span className="flup-label">{title}</span>
       </div>
-      <div className="kpi-content">
-        <h3>{title}</h3>
-        <p className="kpi-value">{value}</p>
-        {trend !== undefined && (
-          <p className={`kpi-trend ${trend > 0 ? 'positive' : 'negative'}`}>
-            {trend > 0 ? '+' : ''}{trend}% depuis le mois dernier
-          </p>
-        )}
+      <div>
+        <span className="flup-mono" style={{ fontSize: '22px', fontWeight: 700, color: 'var(--flup-text-primary)', letterSpacing: '-0.5px' }}>
+          {value}
+        </span>
       </div>
     </div>
   );

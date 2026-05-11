@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import DataTable from '../../components/common/DataTable';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
@@ -34,17 +34,15 @@ const EtudiantsList = () => {
   // Soumission du formulaire (Création ou Mise à jour)
   const handleSubmit = (formData) => {
     if (editingEtudiant) {
-      // Édition
       setEtudiants(etudiants.map(e => e.id === editingEtudiant.id ? { ...e, ...formData } : e));
     } else {
-      // Ajout
       const newEtudiant = {
         ...formData,
         id: Date.now() // Faux ID unique
       };
       setEtudiants([newEtudiant, ...etudiants]);
     }
-    handleCloseModal(); // Fermer la modale
+    handleCloseModal();
   };
 
   // Suppression d'un étudiant
@@ -71,18 +69,22 @@ const EtudiantsList = () => {
       label: 'Actions',
       sortable: false,
       render: (_, row) => (
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button 
+            className="flup-btn"
             onClick={() => handleOpenModal(row)}
-            style={{ color: 'var(--primary-color)', fontWeight: '600', fontSize: '0.875rem' }}
+            title="Éditer"
+            style={{ padding: '6px 10px' }}
           >
-            Éditer
+            <Edit2 size={14} />
           </button>
           <button 
+            className="flup-btn"
             onClick={() => handleDelete(row.id)}
-            style={{ color: '#ef4444', fontWeight: '600', fontSize: '0.875rem' }}
+            title="Supprimer"
+            style={{ padding: '6px 10px', color: 'var(--flup-danger)' }}
           >
-            Supprimer
+            <Trash2 size={14} />
           </button>
         </div>
       )
@@ -91,24 +93,13 @@ const EtudiantsList = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>Gestion des Étudiants</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 className="flup-h1">Gestion des Étudiants</h1>
         <button 
+          className="flup-btn flup-btn--primary"
           onClick={() => handleOpenModal()}
-          style={{ 
-            background: 'var(--primary-color)', 
-            color: 'white', 
-            padding: '0.75rem 1.25rem', 
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontWeight: '600',
-            boxShadow: 'var(--shadow-sm)',
-            transition: 'all 0.2s'
-          }}
         >
-          <Plus size={20} /> Nouvel Étudiant
+          <Plus size={16} /> Nouvel Étudiant
         </button>
       </div>
 
@@ -119,7 +110,6 @@ const EtudiantsList = () => {
         exportable={true} 
       />
 
-      {/* Intégration de la Modale */}
       <Modal 
         isOpen={isModalOpen} 
         onClose={handleCloseModal}

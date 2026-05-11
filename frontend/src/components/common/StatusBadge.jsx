@@ -1,21 +1,29 @@
 import React from 'react';
-import './Common.css';
 
 const StatusBadge = ({ status }) => {
-  let colorClass = 'badge-default';
+  let type = 'up'; 
+  const s = status.toLowerCase();
   
-  const normalizedStatus = status.toLowerCase();
-  
-  if (['actif', 'validée', 'soldé', 'admis', 'justifiée'].includes(normalizedStatus)) {
-    colorClass = 'badge-success';
-  } else if (['suspendu', 'annulée', 'impayé', 'ajourné', 'non justifiée'].includes(normalizedStatus)) {
-    colorClass = 'badge-danger';
-  } else if (['en attente', 'partiel', 'redoublement'].includes(normalizedStatus)) {
-    colorClass = 'badge-warning';
+  if (s.includes('suspendu') || s.includes('annulé') || s.includes('ajourné') || s.includes('absent') || s.includes('retard')) {
+    type = 'down';
+  } 
+  else if (s.includes('attente') || s.includes('redoublement')) {
+    type = 'warning';
+  }
+  else if (s.includes('jour') || s.includes('valid')) {
+    type = 'up';
   }
 
+  if (type === 'up') {
+    return <span className="flup-badge flup-badge--up">{status}</span>;
+  }
+  
+  if (type === 'down') {
+    return <span className="flup-badge flup-badge--down">{status}</span>;
+  }
+  
   return (
-    <span className={`status-badge ${colorClass}`}>
+    <span className="flup-badge" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
       {status}
     </span>
   );
