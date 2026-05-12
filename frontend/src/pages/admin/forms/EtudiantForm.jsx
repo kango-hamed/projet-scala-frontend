@@ -6,10 +6,14 @@ const EtudiantForm = ({ initialData, onSubmit, onCancel }) => {
     matricule: '',
     nom: '',
     prenom: '',
+    sexe: 'M',
+    dateNaissance: '',
     filiere: 'Informatique',
     niveau: 'L1',
-    statut: 'Validée',
+    annee: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString(),
+    statut: 'Actif',
     email: '',
+    telephone: ''
   });
 
   useEffect(() => {
@@ -25,24 +29,29 @@ const EtudiantForm = ({ initialData, onSubmit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = { ...formData };
+    if (!payload.matricule) {
+      payload.matricule = `ETU-${Date.now().toString().slice(-5)}`;
+    }
+    onSubmit(payload);
   };
 
   return (
     <form onSubmit={handleSubmit} className="custom-form">
       <div className="form-grid">
-        <div className="input-group">
-          <label>Matricule</label>
-          <input type="text" name="matricule" value={formData.matricule} onChange={handleChange} required placeholder="Ex: ETU-26-001" disabled={!!initialData} />
-        </div>
+        {initialData && (
+          <div className="input-group">
+            <label>Matricule</label>
+            <input type="text" name="matricule" value={formData.matricule} disabled={true} />
+          </div>
+        )}
         
         <div className="input-group">
           <label>Statut</label>
           <select name="statut" value={formData.statut} onChange={handleChange}>
-            <option value="Validée">Validée</option>
-            <option value="En attente">En attente</option>
+            <option value="Actif">Actif</option>
             <option value="Suspendu">Suspendu</option>
-            <option value="Annulée">Annulée</option>
+            <option value="Diplome">Diplômé</option>
           </select>
         </div>
 
@@ -54,6 +63,19 @@ const EtudiantForm = ({ initialData, onSubmit, onCancel }) => {
         <div className="input-group">
           <label>Prénom</label>
           <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} required placeholder="Prénom" />
+        </div>
+
+        <div className="input-group">
+          <label>Sexe</label>
+          <select name="sexe" value={formData.sexe} onChange={handleChange}>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+        </div>
+
+        <div className="input-group">
+          <label>Date de Naissance</label>
+          <input type="date" name="dateNaissance" value={formData.dateNaissance} onChange={handleChange} required />
         </div>
 
         <div className="input-group">
@@ -76,14 +98,24 @@ const EtudiantForm = ({ initialData, onSubmit, onCancel }) => {
             <option value="M2">M2</option>
           </select>
         </div>
+
+        <div className="input-group">
+          <label>Année Universitaire</label>
+          <input type="text" name="annee" value={formData.annee} onChange={handleChange} required placeholder="Ex: 2026-2027" />
+        </div>
+
+        <div className="input-group">
+          <label>Téléphone</label>
+          <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} required placeholder="06..." />
+        </div>
         
         <div className="input-group full-width">
-          <label>Email Universitaire (Optionnel)</label>
-          <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="nom.prenom@universite.edu" />
+          <label>Email Universitaire</label>
+          <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="nom.prenom@universite.edu" />
         </div>
       </div>
 
-      <div className="form-actions">
+      <div className="form-actions" style={{ gridColumn: '1 / -1' }}>
         <button type="button" className="flup-btn" onClick={onCancel}>Annuler</button>
         <button type="submit" className="flup-btn flup-btn--primary">{initialData ? 'Mettre à jour' : 'Ajouter l\'étudiant'}</button>
       </div>

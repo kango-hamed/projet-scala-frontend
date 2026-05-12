@@ -38,6 +38,15 @@ const etudiantService = {
   },
 
   /**
+   * Supprimer un étudiant
+   * @param {string} matricule 
+   * @returns Promise
+   */
+  delete: async (matricule) => {
+    return await axiosClient.delete(`/etudiants/${matricule}`);
+  },
+
+  /**
    * Obtenir les statistiques globales sur les étudiants
    * @returns Promise
    */

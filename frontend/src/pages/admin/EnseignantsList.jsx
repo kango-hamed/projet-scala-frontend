@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Key } from 'lucide-react';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import enseignantService from '../../services/enseignantService';
+import authService from '../../services/authService';
 import '../admin/forms/Form.css'; // On réutilise les styles de formulaire
 
 const EnseignantsList = () => {
@@ -11,8 +12,13 @@ const EnseignantsList = () => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    nom: '', prenom: '', specialite: 'Informatique', email: ''
+    idEnseignant: '', nom: '', prenom: '', specialite: 'Informatique', email: '', grade: 'Professeur', departement: 'Informatique', telephone: ''
   });
+
+  // États pour la création de compte
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [selectedEnseignant, setSelectedEnseignant] = useState(null);
+  const [accountPassword, setAccountPassword] = useState('');
 
   useEffect(() => {
     fetchEnseignants();
@@ -35,8 +41,74 @@ const EnseignantsList = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    alert("L'API ne supporte pas actuellement la suppression physique d'un enseignant.");
+  const handleDelete = async (id) => {
+    if (window.confirm("Voulez-vous vraiment supprimer cet enseignant ? Cette action est irréversible.")) {
+      try {
+        const response = await enseignantService.delete(id);
+        if (response.success) {
+          fetchEnseignants();
+        } else {
+          alert(response.erreur || "Erreur lors de la suppression de l'enseignant.");
+        }
+      } catch (err) {
+        alert(err.erreur || "Erreur réseau lors de la suppression.");
+      }
+    }
+  };
+
+  const handleOpenAccountModal = (enseignant) => {
+    setSelectedEnseignant(enseignant);
+    setAccountPassword('');
+    setIsAccountModalOpen(true);
+  };
+
+  const handleAccountSubmit = async (e) => {
+    e.preventDefault();
+    if (!accountPassword) {
+      alert("Veuillez saisir un mot de passe.");
+      return;
+    }
+    
+    // Fonction utilitaire pour nettoyer les chaînes (accents, espaces)
+    const cleanStr = (str) => {
+      if (!str) return "";
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    };
+
+    const baseName = `${cleanStr(selectedEnseignant.prenom)}.${cleanStr(selectedEnseignant.nom)}`;
+    const domain = "univ.edu"; // Sigle de l'université
+    
+    let currentEmail = `${baseName}@${domain}`;
+    let counter = 1;
+    let isCreated = false;
+
+    while (!isCreated && counter <= 20) {
+      try {
+        const payload = {
+          email: currentEmail,
+          password: accountPassword,
+          role: "ENSEIGNANT",
+          idProfil: selectedEnseignant.idEnseignant || selectedEnseignant.id
+        };
+        const response = await authService.register(payload);
+        if (response.success) {
+          alert(`Compte utilisateur créé avec succès !\nIdentifiant : ${currentEmail}`);
+          setIsAccountModalOpen(false);
+          isCreated = true;
+        } else {
+          if (response.erreur === "Cet email est déjà utilisé") {
+            currentEmail = `${baseName}${counter}@${domain}`;
+            counter++;
+          } else {
+            alert(response.erreur || "Erreur lors de la création du compte.");
+            break;
+          }
+        }
+      } catch (err) {
+        alert(err.erreur || "Erreur réseau lors de la création du compte.");
+        break;
+      }
+    }
   };
 
   const handleChange = (e) => {
@@ -46,11 +118,17 @@ const EnseignantsList = () => {
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
-      const response = await enseignantService.create(formData);
+      // Génération automatique d'un ID si non fourni par l'utilisateur
+      const payload = { ...formData };
+      if (!payload.idEnseignant || payload.idEnseignant.trim() === '') {
+        payload.idEnseignant = `ENS-${Date.now().toString().slice(-5)}`;
+      }
+
+      const response = await enseignantService.create(payload);
       if (response.success) {
         fetchEnseignants();
         setIsModalOpen(false);
-        setFormData({ nom: '', prenom: '', specialite: 'Informatique', email: '' });
+        setFormData({ idEnseignant: '', nom: '', prenom: '', specialite: 'Informatique', email: '', grade: 'Professeur', departement: 'Informatique', telephone: '' });
       } else {
         alert(response.erreur || "Erreur lors de la création de l'enseignant.");
       }
@@ -60,7 +138,7 @@ const EnseignantsList = () => {
   };
 
   const columns = [
-    { key: 'id', label: 'ID / Matricule', render: (val, row) => <span style={{fontWeight: 600}}>{row.matricule || row.id || val}</span> },
+    { key: 'id', label: 'ID / Matricule', render: (val, row) => <span style={{fontWeight: 600}}>{row.idEnseignant || row.matricule || row.id || val}</span> },
     { key: 'nom', label: 'Nom' },
     { key: 'prenom', label: 'Prénom' },
     { key: 'specialite', label: 'Spécialité', render: (val) => <span className="flup-badge" style={{background: 'var(--flup-bg)', color: 'var(--flup-text-secondary)'}}>{val || 'N/A'}</span> },
@@ -70,14 +148,24 @@ const EnseignantsList = () => {
       label: 'Actions',
       sortable: false,
       render: (_, row) => (
-        <button 
-          className="flup-btn"
-          onClick={() => handleDelete(row.id)}
-          title="Supprimer"
-          style={{ padding: '6px 10px', color: 'var(--flup-danger)' }}
-        >
-          <Trash2 size={14} /> Supprimer
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            className="flup-btn"
+            onClick={() => handleOpenAccountModal(row)}
+            title="Créer un compte d'accès"
+            style={{ padding: '6px 10px', color: 'var(--flup-primary)' }}
+          >
+            <Key size={14} />
+          </button>
+          <button 
+            className="flup-btn"
+            onClick={() => handleDelete(row.idEnseignant || row.id)}
+            title="Supprimer"
+            style={{ padding: '6px 10px', color: 'var(--flup-danger)' }}
+          >
+            <Trash2 size={14} /> Supprimer
+          </button>
+        </div>
       )
     }
   ];
@@ -111,6 +199,7 @@ const EnseignantsList = () => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Ajouter un enseignant">
         <form onSubmit={handleAdd} className="custom-form">
           <div className="form-grid">
+            {/* L'ID est généré automatiquement par l'API */}
             <div className="input-group">
               <label className="flup-label" style={{fontWeight: 600}}>Spécialité</label>
               <select name="specialite" value={formData.specialite} onChange={handleChange}>
@@ -128,16 +217,59 @@ const EnseignantsList = () => {
               <label className="flup-label" style={{fontWeight: 600}}>Prénom</label>
               <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} required placeholder="Prénom" />
             </div>
-            <div className="input-group full-width">
+            <div className="input-group">
+              <label className="flup-label" style={{fontWeight: 600}}>Grade</label>
+              <input type="text" name="grade" value={formData.grade} onChange={handleChange} required placeholder="Ex: Professeur" />
+            </div>
+            <div className="input-group">
+              <label className="flup-label" style={{fontWeight: 600}}>Département</label>
+              <input type="text" name="departement" value={formData.departement} onChange={handleChange} required placeholder="Ex: Informatique" />
+            </div>
+            <div className="input-group">
+              <label className="flup-label" style={{fontWeight: 600}}>Téléphone</label>
+              <input type="text" name="telephone" value={formData.telephone} onChange={handleChange} required placeholder="06..." />
+            </div>
+            <div className="input-group">
               <label className="flup-label" style={{fontWeight: 600}}>Email</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="nom.prenom@univ.edu" />
             </div>
           </div>
-          <div className="form-actions">
+          <div className="form-actions" style={{ gridColumn: '1 / -1' }}>
             <button type="button" className="flup-btn" onClick={() => setIsModalOpen(false)}>Annuler</button>
             <button type="submit" className="flup-btn flup-btn--primary">Valider l'ajout</button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modale de création de compte */}
+      <Modal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        title="Créer un accès utilisateur"
+      >
+        {selectedEnseignant && (
+          <form onSubmit={handleAccountSubmit} className="custom-form">
+            <p style={{ marginBottom: '16px', color: 'var(--flup-text-secondary)', fontSize: '14px' }}>
+              Un email institutionnel (type <em>prenom.nom@univ.edu</em>) sera automatiquement généré pour <strong>{selectedEnseignant.prenom} {selectedEnseignant.nom}</strong>. S'il existe déjà, un numéro y sera ajouté.
+            </p>
+            <div className="form-grid">
+              <div className="input-group full-width">
+                <label className="flup-label" style={{ fontWeight: 600 }}>Mot de passe initial</label>
+                <input 
+                  type="password" 
+                  value={accountPassword} 
+                  onChange={(e) => setAccountPassword(e.target.value)} 
+                  required 
+                  placeholder="Définir le mot de passe" 
+                />
+              </div>
+            </div>
+            <div className="form-actions" style={{ gridColumn: '1 / -1', marginTop: '24px' }}>
+              <button type="button" className="flup-btn" onClick={() => setIsAccountModalOpen(false)}>Annuler</button>
+              <button type="submit" className="flup-btn flup-btn--primary">Créer l'accès</button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

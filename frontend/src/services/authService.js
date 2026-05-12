@@ -25,6 +25,15 @@ const authService = {
    */
   logout: async () => {
     return await axiosClient.post('/auth/logout');
+  },
+
+  /**
+   * Crée un compte utilisateur pour un profil existant (Admin uniquement)
+   * @param {Object} data - { email, password, role, idProfil }
+   * @returns Promise
+   */
+  register: async (data) => {
+    return await axiosClient.post('/auth/register', data);
   }
 };
 

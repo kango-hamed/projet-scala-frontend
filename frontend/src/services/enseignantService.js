@@ -19,6 +19,15 @@ const enseignantService = {
   },
 
   /**
+   * Supprimer un enseignant
+   * @param {string} id 
+   * @returns Promise
+   */
+  delete: async (id) => {
+    return await axiosClient.delete(`/enseignants/${id}`);
+  },
+
+  /**
    * Récupérer les cours assignés à un enseignant
    * @param {string} id 
    * @returns Promise
