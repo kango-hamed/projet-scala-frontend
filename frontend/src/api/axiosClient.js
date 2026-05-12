@@ -31,18 +31,18 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status } = error.response;
-      
-      // Déconnexion automatique si token invalide, expiré ou accès interdit
-      if (status === 401 || status === 403) {
+
+      // 401 = token absent ou expiré → déconnexion + redirection login
+      if (status === 401) {
         localStorage.removeItem('token');
-        
-        // Redirection brutale vers /login s'il n'y est pas déjà
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
       }
+      // 403 = authentifié mais accès refusé → on laisse la page gérer l'erreur
+      // (ne pas supprimer le token ni rediriger)
     }
-    
+
     // On propage l'erreur sous le format de l'API { success: false, erreur: "..." }
     return Promise.reject(error.response?.data || { success: false, erreur: "Erreur réseau ou serveur injoignable" });
   }

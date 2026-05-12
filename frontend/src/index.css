@@ -323,3 +323,13 @@ body {
   color: var(--flup-text-secondary);
   font-weight: 500;
 }
+
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
