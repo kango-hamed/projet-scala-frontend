@@ -1,27 +1,99 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, GraduationCap, AlertTriangle, CreditCard } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import KPICard from '../../components/common/KPICard';
 import StatusBadge from '../../components/common/StatusBadge';
+import etudiantService from '../../services/etudiantService';
+import enseignantService from '../../services/enseignantService';
+import scolariteService from '../../services/scolariteService';
+import financeService from '../../services/financeService';
 
 const AdminDashboard = () => {
-  // Fake Data for charts
+  const [stats, setStats] = useState({
+    totalEtudiants: '...',
+    totalEnseignants: '...',
+    absencesARisque: '...',
+    paiementsEnAttente: '...',
+  });
+  const [recentEtudiants, setRecentEtudiants] = useState([]);
+  
+  // Données dynamiques pour le graphique de répartition
+  const [studentDistData, setStudentDistData] = useState([
+    { name: 'Vide', value: 1 } // Fallback initial
+  ]);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      const [etudiantsRes, enseignantsRes, absencesRes, dettesRes] = await Promise.allSettled([
+        etudiantService.getAll(),
+        enseignantService.getAll(),
+        scolariteService.getAbsencesARisque(),
+        financeService.getEnDette()
+      ]);
+
+      const newStats = { ...stats };
+      let recents = [];
+
+      if (etudiantsRes.status === 'fulfilled' && etudiantsRes.value.success) {
+        const etudiantsList = etudiantsRes.value.data || [];
+        newStats.totalEtudiants = etudiantsList.length;
+        recents = etudiantsList.slice(-5).reverse();
+
+        // Calcul dynamique de la répartition par niveau
+        if (etudiantsList.length > 0) {
+          const niveauxMap = {};
+          etudiantsList.forEach(etu => {
+            const niv = etu.niveau || 'Autre';
+            niveauxMap[niv] = (niveauxMap[niv] || 0) + 1;
+          });
+          const distData = Object.keys(niveauxMap).map(key => ({
+            name: key,
+            value: niveauxMap[key]
+          }));
+          setStudentDistData(distData);
+        } else {
+          setStudentDistData([]); // Vide
+        }
+      }
+
+      if (enseignantsRes.status === 'fulfilled' && enseignantsRes.value.success) {
+        newStats.totalEnseignants = (enseignantsRes.value.data || []).length;
+      }
+
+      if (absencesRes.status === 'fulfilled' && absencesRes.value.success) {
+        newStats.absencesARisque = (absencesRes.value.data || []).length;
+      }
+
+      if (dettesRes.status === 'fulfilled' && dettesRes.value.success) {
+        newStats.paiementsEnAttente = (dettesRes.value.data || []).length;
+      }
+
+      setStats(newStats);
+      setRecentEtudiants(recents);
+
+    } catch (error) {
+      console.error("Erreur chargement dashboard", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fausses données pour le graphique d'absences (nécessite un croisement complexe non natif dans l'API)
   const attendanceData = [
     { name: 'Info', present: 85, absent: 15 },
     { name: 'Maths', present: 90, absent: 10 },
     { name: 'Phys', present: 78, absent: 22 },
     { name: 'Chimie', present: 82, absent: 18 },
   ];
-
-  const studentDistData = [
-    { name: 'L1', value: 400 },
-    { name: 'L2', value: 300 },
-    { name: 'L3', value: 250 },
-    { name: 'M1', value: 150 },
-    { name: 'M2', value: 100 },
-  ];
   
-  const COLORS = ['var(--flup-data-1)', 'var(--flup-data-5)', 'var(--flup-data-2)', 'var(--flup-data-6)', 'var(--flup-data-3)'];
+  const COLORS = ['var(--flup-data-1)', 'var(--flup-data-5)', 'var(--flup-data-2)', 'var(--flup-data-6)', 'var(--flup-data-3)', 'var(--flup-data-7)'];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -29,10 +101,10 @@ const AdminDashboard = () => {
       <section>
         <h2 className="flup-h2" style={{ marginBottom: '16px' }}>Aperçu Global</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-          <KPICard title="Total Étudiants" value="1,200" icon={<Users size={24} />} color="var(--flup-data-1)" />
-          <KPICard title="Total Enseignants" value="150" icon={<GraduationCap size={24} />} color="var(--flup-data-5)" />
-          <KPICard title="Taux d'absentéisme" value="8%" icon={<AlertTriangle size={24} />} color="var(--flup-data-2)" />
-          <KPICard title="Paiements en attente" value="45" icon={<CreditCard size={24} />} color="var(--flup-data-7)" />
+          <KPICard title="Total Étudiants" value={stats.totalEtudiants} icon={<Users size={24} />} color="var(--flup-data-1)" />
+          <KPICard title="Total Enseignants" value={stats.totalEnseignants} icon={<GraduationCap size={24} />} color="var(--flup-data-5)" />
+          <KPICard title="Étudiants à risque (Absences)" value={stats.absencesARisque} icon={<AlertTriangle size={24} />} color="var(--flup-data-2)" />
+          <KPICard title="Paiements en attente" value={stats.paiementsEnAttente} icon={<CreditCard size={24} />} color="var(--flup-data-7)" />
         </div>
       </section>
 
@@ -41,24 +113,30 @@ const AdminDashboard = () => {
         <div className="flup-card">
           <h3 className="flup-h2" style={{ marginBottom: '24px' }}>Répartition par Niveau</h3>
           <div style={{ height: '260px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={studentDistData} innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" stroke="none">
-                  {studentDistData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--flup-border)', boxShadow: 'var(--flup-shadow)' }}
-                  itemStyle={{ color: 'var(--flup-text-primary)' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {studentDistData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={studentDistData} innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" stroke="none">
+                    {studentDistData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: '1px solid var(--flup-border)', boxShadow: 'var(--flup-shadow)' }}
+                    itemStyle={{ color: 'var(--flup-text-primary)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--flup-text-muted)' }}>
+                Aucune donnée
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flup-card">
-          <h3 className="flup-h2" style={{ marginBottom: '24px' }}>Assiduité par Filière (%)</h3>
+          <h3 className="flup-h2" style={{ marginBottom: '24px' }}>Assiduité par Filière (%) (Simulé)</h3>
           <div style={{ height: '260px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={attendanceData} barSize={32}>
@@ -80,7 +158,7 @@ const AdminDashboard = () => {
       {/* RECENT ACTIVITY TABLE */}
       <section className="flup-card" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--flup-border)' }}>
-          <h3 className="flup-h2" style={{ margin: 0 }}>Dernières Inscriptions</h3>
+          <h3 className="flup-h2" style={{ margin: 0 }}>Derniers Étudiants Enregistrés</h3>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="flup-table">
@@ -93,24 +171,22 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ fontWeight: 700 }}>ETU-2026-001</td>
-                <td>Alice Dupont</td>
-                <td style={{ color: 'var(--flup-text-secondary)' }}>Informatique L1</td>
-                <td><StatusBadge status="Validée" /></td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 700 }}>ETU-2026-002</td>
-                <td>Marc Tremblay</td>
-                <td style={{ color: 'var(--flup-text-secondary)' }}>Mathématiques L2</td>
-                <td><StatusBadge status="En attente" /></td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 700 }}>ETU-2026-003</td>
-                <td>Sophie Martin</td>
-                <td style={{ color: 'var(--flup-text-secondary)' }}>Physique M1</td>
-                <td><StatusBadge status="Annulée" /></td>
-              </tr>
+              {recentEtudiants.length > 0 ? (
+                recentEtudiants.map((etu, idx) => (
+                  <tr key={etu.matricule || etu.id || idx}>
+                    <td style={{ fontWeight: 700 }}>{etu.matricule || etu.id || `ETU-N/A`}</td>
+                    <td>{etu.prenom} {etu.nom}</td>
+                    <td style={{ color: 'var(--flup-text-secondary)' }}>{etu.filiere || 'Informatique'} {etu.niveau || ''}</td>
+                    <td><StatusBadge status={etu.statut || 'Actif'} /></td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: 'var(--flup-text-secondary)' }}>
+                    {isLoading ? 'Chargement en cours...' : 'Aucun étudiant trouvé'}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

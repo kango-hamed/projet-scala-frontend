@@ -9,7 +9,7 @@ const MainLayout = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const role = user?.role || 'admin';
+  const role = user?.role?.toLowerCase() || 'admin';
 
   const handleLogout = () => {
     logout();

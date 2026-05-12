@@ -1,33 +1,86 @@
-import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, Folder, FileText, Plus, PlusCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, ChevronDown, Folder, FileText, Plus, PlusCircle, RefreshCw } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import formationService from '../../services/formationService';
 import './FormationsList.css';
 
-const initialTree = [
-  {
-    id: 'f1', name: 'Informatique', type: 'filiere',
-    children: [
-      {
-        id: 'n1', name: 'Licence 1', type: 'niveau',
-        children: [
-          {
-            id: 's1', name: 'Semestre 1', type: 'semestre',
-            children: [
-              { id: 'ue1', name: 'UE1: Fondamentaux', type: 'ue', children: [{ id: 'm1', name: 'Algorithmique (Coef 4)', type: 'matiere' }, { id: 'm2', name: 'Architecture (Coef 3)', type: 'matiere' }] },
-            ]
-          }
-        ]
-      }
-    ]
-  }
-];
-
 const FormationsList = () => {
-  const [data, setData] = useState(initialTree);
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('filiere'); 
   const [parentNodeId, setParentNodeId] = useState(null);
   const [newItemName, setNewItemName] = useState('');
+
+  useEffect(() => {
+    fetchFormations();
+  }, []);
+
+  const fetchFormations = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      // Étape 1 : Récupérer la liste des filières
+      const filieresRes = await formationService.getAll();
+      if (filieresRes.success) {
+        const filieres = filieresRes.data || [];
+        
+        // Étape 2 : Pour chaque filière, récupérer son arbre complet
+        const fullTreePromises = filieres.map(async (filiere) => {
+          const filiereId = filiere.code || filiere.nom || filiere;
+          try {
+            const arbreRes = await formationService.getArbre(filiereId);
+            if (arbreRes.success) {
+              return {
+                id: filiereId,
+                name: filiere.nom || filiere,
+                type: 'filiere',
+                children: formatTreeData(arbreRes.data, 'niveau')
+              };
+            }
+          } catch (e) {
+            console.warn(`Impossible de charger l'arbre pour la filière ${filiereId}`);
+          }
+          // Fallback en cas d'erreur de récupération de l'arbre
+          return {
+            id: filiereId,
+            name: filiere.nom || filiere,
+            type: 'filiere',
+            children: []
+          };
+        });
+
+        const fullTree = await Promise.all(fullTreePromises);
+        setData(fullTree);
+      } else {
+        setError(filieresRes.erreur || "Impossible de charger les formations.");
+      }
+    } catch (err) {
+      setError(err.erreur || "Erreur réseau lors de la communication avec l'API.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper pour adapter la structure de l'API à notre composant TreeNode
+  const formatTreeData = (apiNodes, expectedType) => {
+    if (!apiNodes || !Array.isArray(apiNodes)) return [];
+    
+    return apiNodes.map((node, index) => {
+      const type = node.type || expectedType;
+      const nextTypeMap = { niveau: 'semestre', semestre: 'ue', ue: 'matiere' };
+      const nextType = nextTypeMap[type];
+
+      return {
+        id: node.id || node.code || `${type}-${index}-${Date.now()}`,
+        name: node.nom || node.name || node.titre || node.libelle || node,
+        type: type,
+        children: node.children ? formatTreeData(node.children, nextType) : []
+      };
+    });
+  };
 
   const handleOpenModal = (type, parentId = null) => {
     setModalType(type);
@@ -38,12 +91,12 @@ const FormationsList = () => {
 
   const handleAdd = (e) => {
     e.preventDefault();
+    // Simulation d'ajout local puisque l'API ne liste pas encore de route POST pour les formations/UEs
     const newItem = { id: Date.now().toString(), name: newItemName, type: modalType, children: [] };
     
     if (modalType === 'filiere') {
       setData([...data, newItem]);
     } else {
-      // Fonction récursive pour insérer au bon endroit
       const addNode = (nodes) => {
         return nodes.map(node => {
           if (node.id === parentNodeId) {
@@ -101,13 +154,29 @@ const FormationsList = () => {
     <div className="formations-container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="flup-h1">Formations & Filières</h1>
-        <button className="flup-btn flup-btn--primary" onClick={() => handleOpenModal('filiere')}>
-          <Plus size={16} /> Nouvelle Filière
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="flup-btn" onClick={fetchFormations} title="Actualiser l'arbre">
+            <RefreshCw size={16} className={isLoading ? "rotating" : ""} /> Actualiser
+          </button>
+          <button className="flup-btn flup-btn--primary" onClick={() => handleOpenModal('filiere')}>
+            <Plus size={16} /> Nouvelle Filière
+          </button>
+        </div>
       </div>
+
+      {error && (
+        <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '12px', borderRadius: '4px', marginBottom: '16px' }}>
+          {error}
+        </div>
+      )}
+
       <div className="flup-card tree-view-card">
-        {data.length === 0 ? (
-          <p className="flup-label" style={{ textAlign: 'center' }}>Aucune filière configurée.</p>
+        {isLoading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--flup-text-secondary)' }}>
+            Chargement de l'arborescence des formations...
+          </div>
+        ) : data.length === 0 ? (
+          <p className="flup-label" style={{ textAlign: 'center' }}>Aucune filière trouvée dans le backend.</p>
         ) : (
           data.map(node => <TreeNode key={node.id} node={node} />)
         )}

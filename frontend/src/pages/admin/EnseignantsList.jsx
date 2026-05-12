@@ -1,46 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
+import enseignantService from '../../services/enseignantService';
 import '../admin/forms/Form.css'; // On réutilise les styles de formulaire
 
-const initialEnseignants = [
-  { id: 1, matricule: 'ENS-26-001', nom: 'Martin', prenom: 'Paul', specialite: 'Informatique', email: 'paul.martin@univ.edu' },
-  { id: 2, matricule: 'ENS-26-002', nom: 'Dupont', prenom: 'Marie', specialite: 'Mathématiques', email: 'marie.dupont@univ.edu' },
-  { id: 3, matricule: 'ENS-26-003', nom: 'Bernard', prenom: 'Jean', specialite: 'Physique', email: 'jean.bernard@univ.edu' },
-];
-
 const EnseignantsList = () => {
-  const [enseignants, setEnseignants] = useState(initialEnseignants);
+  const [enseignants, setEnseignants] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    matricule: '', nom: '', prenom: '', specialite: 'Informatique', email: ''
+    nom: '', prenom: '', specialite: 'Informatique', email: ''
   });
 
-  const handleDelete = (id) => {
-    if (window.confirm('Voulez-vous vraiment supprimer cet enseignant ? Cette action est irréversible.')) {
-      setEnseignants(enseignants.filter(e => e.id !== id));
+  useEffect(() => {
+    fetchEnseignants();
+  }, []);
+
+  const fetchEnseignants = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await enseignantService.getAll();
+      if (response.success) {
+        setEnseignants(response.data || []);
+      } else {
+        setError(response.erreur || "Impossible de charger la liste des enseignants.");
+      }
+    } catch (err) {
+      setError(err.erreur || "Erreur réseau lors du chargement des enseignants.");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleDelete = (id) => {
+    alert("L'API ne supporte pas actuellement la suppression physique d'un enseignant.");
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    const newEns = { ...formData, id: Date.now() };
-    setEnseignants([newEns, ...enseignants]);
-    setIsModalOpen(false);
-    setFormData({ matricule: '', nom: '', prenom: '', specialite: 'Informatique', email: '' });
+    try {
+      const response = await enseignantService.create(formData);
+      if (response.success) {
+        fetchEnseignants();
+        setIsModalOpen(false);
+        setFormData({ nom: '', prenom: '', specialite: 'Informatique', email: '' });
+      } else {
+        alert(response.erreur || "Erreur lors de la création de l'enseignant.");
+      }
+    } catch (err) {
+      alert(err.erreur || "Erreur réseau lors de la validation du formulaire.");
+    }
   };
 
   const columns = [
-    { key: 'matricule', label: 'Matricule', render: (val) => <span style={{fontWeight: 600}}>{val}</span> },
+    { key: 'id', label: 'ID / Matricule', render: (val, row) => <span style={{fontWeight: 600}}>{row.matricule || row.id || val}</span> },
     { key: 'nom', label: 'Nom' },
     { key: 'prenom', label: 'Prénom' },
-    { key: 'specialite', label: 'Spécialité', render: (val) => <span className="flup-badge" style={{background: 'var(--flup-bg)', color: 'var(--flup-text-secondary)'}}>{val}</span> },
-    { key: 'email', label: 'Email Universitaire' },
+    { key: 'specialite', label: 'Spécialité', render: (val) => <span className="flup-badge" style={{background: 'var(--flup-bg)', color: 'var(--flup-text-secondary)'}}>{val || 'N/A'}</span> },
+    { key: 'email', label: 'Email' },
     {
       key: 'actions',
       label: 'Actions',
@@ -70,15 +94,23 @@ const EnseignantsList = () => {
         </button>
       </div>
 
-      <DataTable columns={columns} data={enseignants} searchable={true} exportable={true} />
+      {error && (
+        <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '12px', borderRadius: '4px', marginBottom: '16px' }}>
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--flup-text-secondary)' }}>
+          Chargement des enseignants en cours...
+        </div>
+      ) : (
+        <DataTable columns={columns} data={enseignants} searchable={true} exportable={true} />
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Ajouter un enseignant">
         <form onSubmit={handleAdd} className="custom-form">
           <div className="form-grid">
-            <div className="input-group">
-              <label className="flup-label" style={{fontWeight: 600}}>Matricule</label>
-              <input type="text" name="matricule" value={formData.matricule} onChange={handleChange} required placeholder="Ex: ENS-26-004" />
-            </div>
             <div className="input-group">
               <label className="flup-label" style={{fontWeight: 600}}>Spécialité</label>
               <select name="specialite" value={formData.specialite} onChange={handleChange}>
@@ -97,7 +129,7 @@ const EnseignantsList = () => {
               <input type="text" name="prenom" value={formData.prenom} onChange={handleChange} required placeholder="Prénom" />
             </div>
             <div className="input-group full-width">
-              <label className="flup-label" style={{fontWeight: 600}}>Email Universitaire</label>
+              <label className="flup-label" style={{fontWeight: 600}}>Email</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="nom.prenom@univ.edu" />
             </div>
           </div>

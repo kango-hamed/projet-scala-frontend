@@ -11,9 +11,9 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   // Si l'utilisateur est connecté mais n'a pas le bon rôle pour cette route
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && user.role && !allowedRoles.includes(user.role.toLowerCase())) {
     // On le ramène de force vers son propre tableau de bord
-    return <Navigate to={`/${user.role}`} replace />;
+    return <Navigate to={`/${user.role.toLowerCase()}`} replace />;
   }
 
   // Tout est bon, on affiche les enfants (les pages protégées)
